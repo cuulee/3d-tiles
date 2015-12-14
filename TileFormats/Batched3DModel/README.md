@@ -45,29 +45,43 @@ The batch table maps each `batchId` to per-model properties.  If present, the ba
 
 The batch table is a `UTF-8` string containing JSON.  It immediately follows the header.  It can be extracted from the arraybuffer using the `TextDecoder` JavaScript API and transformed to a JavaScript object with `JSON.parse`.
 
-Each property in the object is an array with its length equal to `header.batchLength`.  Each array is a homogeneous collection of `String`, `Number`, or `Boolean` elements.  Elements may be `null`.
+The JavaScript object contains a set of properties with pre-defined names. Each property is an array with its length equal to `header.batchLength` so that values from the batch table can be matched with the vertices' `batchId` attribute.
 
-A vertex's `batchId` is used to access elements in each array and extract the corresponding properties.  For example, the following batch table has properties for a batch of two models.
+A property with name "id" provides unique identifiers, which can used in hash tables or Javascript associative arrays. The array contains `String` or `Number` elements.  Elements may be `null`.
+
+A property with name "attributes" is an array of JSON objects containing key values pairs. The key provides the attribute's name. The value can be of type `String`, `Number`, 'Boolean', or a JSON object.  Elements may be `null`.
+
+None of the properties are mandatory. If no information is available, an empty JSON object is also valid.
+
+The JavaScript object can be extended by custom specific properties, each containing an array with its length equal to `header.batchLength`.
+
+
+A vertex's `batchId` is used to access elements in each array and extract the corresponding properties.  For example, the following batch table has properties for a batch of three models.
 ```json
 {
-    "id" : ["unique id", "another unique id"],
-    "displayName" : ["Building name", "Another building name"],
-    "yearBuilt" : [1999, 2015]
+    "id" : ["BLDG_09257","BLDG_09258","BLDG_09259" ],    
+    "attributes" : [{"displayName":"Small House","function":"Residential"},{"displayName":"Office Building","yearBuilt":2015},{"function":"Administration"} ]
 }
 ```
 
 The properties for the model with `batchId = 0` are
 ```javascript
-id[0] = 'unique id';
-displayName[0] = 'Building name';
-yearBuilt[0] = 1999;
+id[0] = 'BLDG_09257';
+attributes[0]['displayName'] = 'Small House';
+attributes[0]['function'] = 'Residential';
 ```
 
 The properties for `batchId = 1` are
 ```javascript
-id[1] = 'another unique id';
-displayName[1] = 'Another building name';
-yearBuilt[1] = 2015;
+id[1] = 'BLDG_09258';
+attributes[1]['displayName'] = 'Office Building';
+attributes[1]['yearBuilt'] = 2015;
+```
+
+The properties for `batchId = 2` are
+```javascript
+id[2] = 'BLDG_09259';
+attributes[2]['function'] = 'Administration';
 ```
 
 ## Binary glTF
