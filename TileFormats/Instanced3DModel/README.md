@@ -47,32 +47,49 @@ The body immediately follows the header, and is composed of three fields: `Batch
 
 _TODO: create a separate Batch Table spec that b3dm, i3dm, etc. can reference?_
 
+In the Binary glTF section, each vertex has an unsigned short `batchId` attribute in the range `[0, number of models in the batch - 1]`.  The `batchId` indicates the model to which the vertex belongs.  This allows models to be batched together and still be identifiable.
+
 The batch table is a `UTF-8` string containing JSON.  It immediately follows the header.  It can be extracted from the arraybuffer using the `TextDecoder` JavaScript API and transformed to a JavaScript object with `JSON.parse`.
 
-Each property in the object is an array with its length equal to the number of instances in the tile.  Each array is a homogeneous collection of `String`, `Number`, or `Boolean` elements.  Elements may be `null`.
+The JavaScript object contains a set of properties with pre-defined names. Each property is an array with its length equal to `header.batchLength` so that values from the batch table can be matched with the models' `batchId` attribute.
 
-An instance's `batchId` is used to access elements in each array and extract the corresponding properties.  For example, the following batch table has properties for two instances:
+A property with name "id" provides unique identifiers, which can used in hash tables or Javascript associative arrays. The array contains `String` or `Number` elements.  Elements may be `null`.
+
+A property with name "attributes" is an array of JSON objects containing key values pairs. The key provides the attribute's name. The value can be of type `String`, `Number`, 'Boolean', or a JSON object.  Elements may be `null`.
+
+None of the properties are mandatory. If no information is available, an empty JSON object is also valid.
+
+The JavaScript object can be extended by custom specific properties, each containing an array with its length equal to `header.batchLength`.
+
+
+A vertex's `batchId` is used to access elements in each array and extract the corresponding properties.  For example, the following batch table has properties for a batch of three instances.
 ```json
 {
-    "id" : ["unique id", "another unique id"],
-    "displayName" : ["Tree species", "Another tree species"],
-    "yearPlanted" : [1999, 2003]
+    "id" : ["Tree_39251","Tree_39252","Tree_39253" ],    
+    "attributes" : [{"displayName":"Small Tree","species":"Acer platanoides"},{"displayName":"Old Oak"},{"species":"Quercus robur", "height":16.5} ]
 }
 ```
 
 The properties for the instance with `batchId = 0` are
 ```javascript
-id[0] = 'unique id';
-displayName[0] = 'Tree species';
-yearBuilt[0] = 1999;
+id[0] = 'Tree_39251';
+attributes[0]['displayName'] = 'Small Tree';
+attributes[0]['species'] = 'Acer platanoides';
 ```
 
 The properties for `batchId = 1` are
 ```javascript
-id[1] = 'another unique id';
-displayName[1] = 'Another tree species';
-yearBuilt[1] = 2003;
+id[1] = 'Tree_39252';
+attributes[1]['displayName'] = 'Old Oak';
 ```
+
+The properties for `batchId = 2` are
+```javascript
+id[2] = 'Tree_39253';
+attributes[2]['species'] = 'Quercus robur';
+attributes[2]['height'] = 16.5;
+```
+
 
 ## glTF
 
